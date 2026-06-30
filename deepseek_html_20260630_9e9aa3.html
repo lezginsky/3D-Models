@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mich — Portfolio</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Borel&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600&display=swap" rel="stylesheet">
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background-color: #000000;
+            transition: background-color 0.15s ease-out;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            width: 100%;
+            height: 100%;
+            overflow-x: hidden;
+        }
+
+        /* --- Главный контейнер (защита от горизонтального скролла) --- */
+        .main-viewport {
+            position: relative;
+            width: 100%;
+            overflow: hidden; /* Убивает горизонтальный скролл на корню */
+        }
+
+        #webgl-container {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 10;
+            pointer-events: none;
+        }
+        #webgl-container canvas { display: block; width: 100%; height: 100%; }
+
+        .scroll-wrapper { 
+            position: relative; 
+            z-index: 1; 
+            width: 100%;
+        }
+        .section { width: 100%; }
+        .black-section { height: 100vh; }
+        .white-section { height: 100vh; background: transparent; }
+        .third-section { 
+            height: 100vh; 
+            background: transparent;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* --- Топбар (Новый строгий дизайн) --- */
+        .topbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 70px;
+            background-color: #ffffff;
+            z-index: 50;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 4vw;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.05);
+            pointer-events: auto;
+            transition: opacity 0.4s ease;
+        }
+
+        /* Borel убран, теперь строгий Inter */
+        .topbar-logo {
+            font-family: 'Inter', sans-serif; 
+            font-size: 1.8rem;
+            color: #000000;
+            text-decoration: none;
+            font-weight: 700; /* Жирный */
+            text-transform: uppercase; /* Заглавные */
+            letter-spacing: 0.05em;
+            padding-top: 22px;
+            line-height: 1;
+            display: block;
+        }
+
+        .topbar-nav {
+            display: flex;
+            align-items: center;
+            gap: 0;
+            height: 100%;
+        }
+
+        .topbar-nav a {
+            font-family: 'Inter', sans-serif;
+            font-size: 0.95rem;
+            color: #000000;
+            text-decoration: none;
+            padding: 0 20px;
+            font-weight: 400;
+            transition: color 0.2s ease;
+            position: relative;
+        }
+
+        .topbar-nav a:hover {
+            color: #007AFF;
+        }
+
+        .topbar-nav .divider {
+            color: #cccccc;
+            font-size: 1.2rem;
+            font-weight: 300;
+            user-select: none;
+        }
+
+        /* --- Бинарный фон --- */
+        .binary-background {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%;
+            height: 100vh;
+            z-index: 0;
+            overflow: hidden;
+            pointer-events: none;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 16px;
+            line-height: 1.6;
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            letter-spacing: 3px;
+            transition: color 0.4s ease;
+        }
+
+        .binary-row {
+            display: block;
+            white-space: nowrap;
+            opacity: 0.15;
+            width: 100%;
+            animation: binaryScroll 40s linear infinite;
+        }
+
+        @keyframes binaryScroll {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-100%); }
+        }
+
+        /* --- Нейросетевой фон --- */
+        #neural-network {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%;
+            height: 100vh;
+            z-index: 1;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.6s ease;
+        }
+
+        .scroll-hint {
+            position: fixed; bottom: 40px; left: 50%;
+            transform: translateX(-50%); z-index: 20;
+            color: #ffffff;
+            font-size: 13px; letter-spacing: 2.5px;
+            text-transform: uppercase;
+            opacity: 0.5;
+            animation: bounce 2s infinite;
+            pointer-events: none;
+            transition: opacity 0.4s;
+            font-family: 'Inter', sans-serif;
+        }
+        @keyframes bounce {
+            0%, 100% { transform: translateX(-50%) translateY(0); }
+            50%      { transform: translateX(-50%) translateY(12px); }
+        }
+
+        /* --- Вторая страница --- */
+        .white-section-content {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 3;
+            padding-top: 70px;
+        }
+
+        .white-content-container {
+            position: relative;
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 5vh 5vw;
+            height: calc(100% - 70px);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: flex-start;
+            pointer-events: auto;
+        }
+
+        .text-column {
+            max-width: 700px;
+            width: 100%;
+            position: relative;
+            z-index: 2;
+        }
+
+        .text-column h2 {
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            font-size: clamp(2.8rem, 6vw, 5.5rem);
+            color: #000;
+            margin-bottom: 2rem;
+            line-height: 1.1;
+            letter-spacing: -0.03em;
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        .text-column p {
+            font-family: 'Inter', sans-serif;
+            font-weight: 400;
+            font-size: clamp(1.1rem, 1.4vw, 1.5rem);
+            line-height: 1.8;
+            color: #222;
+            max-width: 650px;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        #three-m-container {
+            position: absolute;
+            top: 50%;
+            right: 10vw; /* Чуть отступил от края */
+            transform: translateY(-50%);
+            width: 500px; /* Увеличил с 320 до 500 */
+            height: 500px;
+            z-index: 3;
+            pointer-events: none;
+        }
+
+        /* --- Третья страница --- */
+        .third-section-content {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 6; 
+            padding-top: 70px;
+        }
+
+        .third-content-container {
+            position: relative;
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 5vh 5vw;
+            height: calc(100% - 70px);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: flex-start;
+            pointer-events: auto;
+        }
+
+        .third-text-column {
+            max-width: 700px;
+            width: 100%;
+            position: relative;
+            z-index: 7;
+            opacity: 0;
+        }
+
+        .third-text-column h2 {
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            font-size: clamp(2.5rem, 4vw, 4rem);
+            color: #ffffff;
+            margin-bottom: 1.5rem;
+            line-height: 1.1;
+            letter-spacing: -0.02em;
+        }
+
+        .third-text-column p {
+            font-family: 'Inter', sans-serif;
+            font-weight: 400;
+            font-size: clamp(1rem, 1.2vw, 1.3rem);
+            line-height: 1.7;
+            color: #dddddd;
+            max-width: 650px;
+            margin-bottom: 1.5rem;
+        }
+
+        .third-text-column ul {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 2rem 0;
+        }
+
+        .third-text-column ul li {
+            font-family: 'Inter', sans-serif;
+            font-weight: 400;
+            font-size: clamp(1rem, 1.2vw, 1.3rem);
+            line-height: 1.7;
+            color: #dddddd;
+            margin-bottom: 0.8rem;
+            padding-left: 1.5rem;
+            position: relative;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .third-text-column ul li::before {
+            content: "—";
+            position: absolute;
+            left: 0;
+            color: #ffffff;
+            font-weight: 600;
+            transition: color 0.3s ease;
+        }
+
+        .third-text-column ul li strong {
+            color: #ffffff;
+            font-weight: 600;
+            transition: color 0.3s ease;
+        }
+
+        .third-text-column ul li.hover-active {
+            color: #ffffff;
+        }
+        .third-text-column ul li.hover-active strong {
+            color: #007AFF;
+        }
+        .third-text-column ul li.hover-active::before {
+            color: #007AFF;
+        }
+
+        .third-text-column .final-text {
+            margin-top: 1rem;
+        }
+
+        /* Мозг: огромный, полупрозрачный, на заднем плане */
+        #brain-container {
+            position: absolute;
+            top: 50%;
+            right: 0;
+            transform: translateY(-50%) translateX(50%); /* Позиционирование без вылета за экран */
+            width: 900px;
+            height: 900px;
+            z-index: 0; /* Убрали на задний план */
+            pointer-events: none;
+            opacity: 0.3; /* Сделали полупрозрачным */
+        }
+
+        /* --- Адаптация --- */
+        @media (max-width: 1024px) {
+            .topbar { height: 60px; padding: 0 3vw; }
+            .topbar-logo { font-size: 1.5rem; padding-top: 18px; }
+            .topbar-nav a { font-size: 0.85rem; padding: 0 12px; }
+            
+            #three-m-container { width: 350px; height: 350px; right: 5vw; }
+            #brain-container { width: 600px; height: 600px; }
+        }
+
+        @media (max-width: 768px) {
+            .topbar { height: 50px; padding: 0 4vw; }
+            .topbar-logo { font-size: 1.2rem; padding-top: 12px; }
+            .topbar-nav a { font-size: 0.7rem; padding: 0 6px; }
+            .topbar-nav .divider { font-size: 0.8rem; }
+            
+            .white-content-container { padding: 5vh 4vw; justify-content: flex-start; padding-top: 15vh; }
+            .text-column { max-width: 100%; padding-bottom: 20px; }
+            .text-column h2 { font-size: 2.8rem; margin-bottom: 1.5rem; }
+            .text-column p { font-size: 1.1rem; max-width: 100%; }
+            #three-m-container { position: absolute; top: 50%; right: 2vw; transform: translateY(-50%); width: 200px; height: 200px; }
+            
+            .third-content-container { padding: 10vh 4vw; justify-content: flex-start; padding-top: 20vh; }
+            .third-text-column { max-width: 100%; }
+            .third-text-column h2 { font-size: 2.2rem; }
+            .third-text-column p { font-size: 1rem; }
+            .third-text-column ul li { font-size: 1rem; }
+            #brain-container { position: absolute; top: 50%; right: 0; transform: translateY(-50%) translateX(20%); width: 300px; height: 300px; }
+        }
+
+        @media (max-width: 480px) {
+            .topbar { height: 45px; padding: 0 3vw; }
+            .topbar-logo { font-size: 1rem; padding-top: 10px; }
+            .topbar-nav a { font-size: 0.6rem; padding: 0 4px; }
+            .topbar-nav .divider { font-size: 0.6rem; }
+            
+            #three-m-container { width: 120px; height: 120px; right: 2vw; }
+            .text-column h2 { font-size: 2.2rem; }
+            .text-column p { font-size: 0.95rem; }
+            #brain-container { width: 200px; height: 200px; right: 0; transform: translateY(-50%) translateX(20%); }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Главный контейнер для защиты от горизонтального скролла -->
+    <div class="main-viewport">
+
+        <!-- Топбар -->
+        <header class="topbar">
+            <a href="#" class="topbar-logo">MICH</a>
+            <nav class="topbar-nav">
+                <a href="#">О нас</a>
+                <span class="divider">|</span>
+                <a href="#">Блог</a>
+                <span class="divider">|</span>
+                <a href="#">FAQ</a>
+                <span class="divider">|</span>
+                <a href="#">Инвесторам</a>
+            </nav>
+        </header>
+
+        <div class="binary-background" id="binaryBg"></div>
+        <canvas id="neural-network"></canvas>
+
+        <div id="webgl-container"></div>
+
+        <div class="scroll-wrapper">
+            <div class="section black-section"></div>
+            
+            <div class="section white-section">
+                <div class="white-section-content">
+                    <div class="white-content-container">
+                        <div class="text-column">
+                            <h2 class="section-title">Что такое Mich?</h2>
+                            <p class="section-desc">
+                                Mich — это независимая международная технологическая экосистема нового поколения, созданная для полного переосмысления устоявшихся стандартов в индустрии потребительской электроники и программного обеспечения. Мы не адаптируемся под существующий рынок — мы проектируем цифровую реальность с чистого листа.
+                            </p>
+                        </div>
+                        <div id="three-m-container"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section third-section">
+                <div class="third-section-content">
+                    <div class="third-content-container">
+                        <div class="third-text-column">
+                            <h2 class="third-title">ИИ нового поколения</h2>
+                            <p class="third-desc-1">
+                                Мы создаем ИИ на базе спайковых нейросетей. В отличие от обычных ИИ, наш мозг имитирует реальный человеческий мозг, передавая информацию редкими, точными импульсами.
+                            </p>
+                            
+                            <h2 class="third-title-2">Что это дает?</h2>
+                            <ul class="third-list">
+                                <li id="li-energy"><strong>Энергоэффективность:</strong> Потребление энергии снижается в тысячи раз.</li>
+                                <li id="li-autonomy"><strong>Автономность:</strong> Работа на компактных устройствах без облака.</li>
+                                <li id="li-speed"><strong>Скорость:</strong> Мгновенная обработка в реальном времени.</li>
+                                <li id="li-learn"><strong>Обучение на лету:</strong> Адаптация к новым задачам в процессе работы.</li>
+                            </ul>
+                            
+                            <p class="final-text">
+                                Мы верим, что спайковые технологии — ключ к экологичному и безопасному ИИ. Меняйте мир вместе с нами!
+                            </p>
+                        </div>
+                        
+                        <!-- Мозг на заднем плане -->
+                        <div id="brain-container"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="scroll-hint">↓ Скролль</div>
+
+    </div>
+
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.module.js",
+                "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.158.0/examples/jsm/"
+            }
+        }
+    </script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { FontLoader } from 'three/addons/loaders/FontLoader.js';
+        import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
+        import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+        // --- 1. Бинарный фон ---
+        const binaryBg = document.getElementById('binaryBg');
+        let html = '';
+        for (let i = 0; i < 100; i++) {
+            let row = '';
+            for (let j = 0; j < 300; j++) {
+                row += Math.random() > 0.5 ? '1' : '0';
+            }
+            html += `<span class="binary-row">${row}</span>`;
+        }
+        binaryBg.innerHTML = html;
+
+        // --- 2. Нейросетевой фон (Canvas) ---
+        const canvas = document.getElementById('neural-network');
+        const ctx = canvas.getContext('2d');
+        let width, height;
+        let particles = [];
+        const PARTICLE_COUNT = 150;
+        const CONNECTION_DISTANCE = 250;
+
+        function resizeCanvas() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * width;
+                this.y = Math.random() * height;
+                this.vx = (Math.random() - 0.5) * 1.5;
+                this.vy = (Math.random() - 0.5) * 1.5;
+                this.radius = Math.random() * 3 + 2;
+                this.isActive = false;
+                this.group = Math.floor(Math.random() * 4);
+            }
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                if (this.x < 0 || this.x > width) this.vx *= -1;
+                if (this.y < 0 || this.y > height) this.vy *= -1;
+            }
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = this.isActive ? '#007AFF' : '#ffffff';
+                ctx.shadowColor = this.isActive ? '#007AFF' : 'transparent';
+                ctx.shadowBlur = this.isActive ? 20 : 0;
+                ctx.fill();
+            }
+        }
+
+        for (let i = 0; i < PARTICLE_COUNT; i++) {
+            particles.push(new Particle());
+        }
+
+        function drawNetwork() {
+            ctx.clearRect(0, 0, width, height);
+            
+            for (let i = 0; i < particles.length; i++) {
+                particles[i].update();
+                particles[i].draw();
+                for (let j = i + 1; j < particles.length; j++) {
+                    const dx = particles[i].x - particles[j].x;
+                    const dy = particles[i].y - particles[j].y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist < CONNECTION_DISTANCE) {
+                        const opacity = 1 - (dist / CONNECTION_DISTANCE);
+                        const isConnected = particles[i].isActive || particles[j].isActive;
+                        ctx.beginPath();
+                        ctx.moveTo(particles[i].x, particles[i].y);
+                        ctx.lineTo(particles[j].x, particles[j].y);
+                        ctx.strokeStyle = isConnected ? `rgba(0, 122, 255, ${opacity * 0.6})` : `rgba(255, 255, 255, ${opacity * 0.12})`;
+                        ctx.lineWidth = isConnected ? 3 : 1.5;
+                        ctx.shadowColor = isConnected ? '#007AFF' : 'transparent';
+                        ctx.shadowBlur = isConnected ? 15 : 0;
+                        ctx.stroke();
+                    }
+                }
+            }
+            requestAnimationFrame(drawNetwork);
+        }
+        drawNetwork();
+
+        // --- 3. Интерактивность (Подсветка нейронов) ---
+        const energyLi = document.getElementById('li-energy');
+        const autonomyLi = document.getElementById('li-autonomy');
+        const speedLi = document.getElementById('li-speed');
+        const learnLi = document.getElementById('li-learn');
+
+        function highlightGroup(groupIndex, isActive) {
+            particles.forEach(p => {
+                if (p.group === groupIndex) {
+                    p.isActive = isActive;
+                } else {
+                    p.isActive = false;
+                }
+            });
+        }
+
+        function setupInteraction(element, groupIndex) {
+            const activate = () => {
+                element.classList.add('hover-active');
+                highlightGroup(groupIndex, true);
+            };
+            const deactivate = () => {
+                element.classList.remove('hover-active');
+                highlightGroup(groupIndex, false);
+            };
+
+            element.addEventListener('mouseenter', activate);
+            element.addEventListener('mouseleave', deactivate);
+            element.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                activate();
+            });
+            element.addEventListener('touchend', (e) => {
+                setTimeout(deactivate, 300);
+            });
+        }
+
+        setupInteraction(energyLi, 0);
+        setupInteraction(autonomyLi, 1);
+        setupInteraction(speedLi, 2);
+        setupInteraction(learnLi, 3);
+
+        // --- 4. GSAP ---
+        gsap.registerPlugin(ScrollTrigger);
+
+        gsap.to(document.body, {
+            backgroundColor: '#ffffff',
+            scrollTrigger: {
+                trigger: '.white-section',
+                start: 'top bottom',
+                end: 'top top',
+                scrub: 1.2,
+            }
+        });
+        gsap.to('#binaryBg', {
+            color: '#000000',
+            scrollTrigger: {
+                trigger: '.white-section',
+                start: 'top bottom',
+                end: 'top top',
+                scrub: 1.2,
+            }
+        });
+
+        gsap.to('#binaryBg', {
+            opacity: 0,
+            scrollTrigger: {
+                trigger: '.third-section',
+                start: 'top bottom-=40%',
+                end: 'top bottom',
+                scrub: 1.8,
+            }
+        });
+        gsap.to('#neural-network', {
+            opacity: 1,
+            scrollTrigger: {
+                trigger: '.third-section',
+                start: 'top bottom-=40%',
+                end: 'top bottom',
+                scrub: 1.8,
+            }
+        });
+
+        gsap.to(document.body, {
+            backgroundColor: '#000000',
+            scrollTrigger: {
+                trigger: '.third-section',
+                start: 'top bottom-=40%',
+                end: 'top top',
+                scrub: 1.8,
+            }
+        });
+
+        gsap.to('.third-text-column', {
+            opacity: 1,
+            scrollTrigger: {
+                trigger: '.third-section',
+                start: 'top bottom+=10%',
+                end: 'top bottom+=50%',
+                scrub: 1.5,
+            }
+        });
+        gsap.to('#brain-container', {
+            opacity: 0.4, /* Делаем полупрозрачным при появлении */
+            scrollTrigger: {
+                trigger: '.third-section',
+                start: 'top bottom+=10%',
+                end: 'top bottom+=50%',
+                scrub: 1.5,
+            }
+        });
+
+        // --- 5. Основная сцена ---
+        const container = document.getElementById('webgl-container');
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 50);
+        camera.position.z = 5;
+
+        const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        container.appendChild(renderer.domElement);
+
+        const noiseGLSL = `
+            vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+            vec4 mod289(vec4 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+            vec4 permute(vec4 x) { return mod289(((x * 34.0) + 1.0) * x); }
+            vec4 taylorInvSqrt(vec4 r) { return 1.79284291400159 - 0.85373472095314 * r; }
+
+            float snoise(vec3 v) {
+                const vec2 C = vec2(1.0 / 6.0, 1.0 / 3.0);
+                const vec4 D = vec4(0.0, 0.5, 1.0, 2.0);
+                vec3 i  = floor(v + dot(v, C.yyy));
+                vec3 x0 = v - i + dot(i, C.xxx);
+                vec3 g  = step(x0.yzx, x0.xyz);
+                vec3 l  = 1.0 - g;
+                vec3 i1 = min(g.xyz, l.zxy);
+                vec3 i2 = max(g.xyz, l.zxy);
+                vec3 x1 = x0 - i1 + C.xxx;
+                vec3 x2 = x0 - i2 + C.yyy;
+                vec3 x3 = x0 - D.yyy;
+                i = mod289(i);
+                vec4 p = permute(permute(permute(
+                    i.z + vec4(0.0, i1.z, i2.z, 1.0))
+                    + i.y + vec4(0.0, i1.y, i2.y, 1.0))
+                    + i.x + vec4(0.0, i1.x, i2.x, 1.0));
+                float n_ = 0.142857142857;
+                vec3 ns = n_ * D.wyz - D.xzx;
+                vec4 j = p - 49.0 * floor(p * n_ * n_);
+                vec4 x_ = floor(j * n_);
+                vec4 y_ = floor(j - 7.0 * x_);
+                vec4 x = x_ * ns.x + ns.yyyy;
+                vec4 y = y_ * ns.x + ns.yyyy;
+                vec4 h = 1.0 - abs(x) - abs(y);
+                vec4 b0 = vec4(x.xy, y.xy);
+                vec4 b1 = vec4(x.zw, y.zw);
+                vec4 s0 = floor(b0) * 2.0 + 1.0;
+                vec4 s1 = floor(b1) * 2.0 + 1.0;
+                vec4 sh = -step(h, vec4(0.0));
+                vec4 a0 = b0.xzyw + s0.xzyw * sh.xxyy;
+                vec4 a1 = b1.xzyw + s1.xzyw * sh.zzww;
+                vec3 p0 = vec3(a0.xy, h.x);
+                vec3 p1 = vec3(a0.zw, h.y);
+                vec3 p2 = vec3(a1.xy, h.z);
+                vec3 p3 = vec3(a1.zw, h.w);
+                vec4 norm = taylorInvSqrt(vec4(dot(p0,p0), dot(p1,p1), dot(p2,p2), dot(p3,p3)));
+                p0 *= norm.x; p1 *= norm.y; p2 *= norm.z; p3 *= norm.w;
+                vec4 m = max(0.6 - vec4(dot(x0,x0), dot(x1,x1), dot(x2,x2), dot(x3,x3)), 0.0);
+                m = m * m;
+                return 42.0 * dot(m*m, vec4(dot(p0,x0), dot(p1,x1), dot(p2,x2), dot(p3,x3)));
+            }
+
+            float fbm(vec3 p) {
+                float v = 0.0, a = 0.5, f = 1.0;
+                for (int i = 0; i < 4; i++) { v += a * snoise(p * f); f *= 2.2; a *= 0.5; }
+                return v;
+            }
+        `;
+
+        const shaderMaterial = new THREE.ShaderMaterial({
+            uniforms: {
+                uTime: { value: 0 },
+                uProgress: { value: 0 },
+                uTextColor: { value: new THREE.Color('#ffffff') },
+                uTextTex: { value: null },
+            },
+            vertexShader: noiseGLSL + `
+                varying vec2 vUv; varying float vY; varying float vEdgeDistort;
+                uniform float uTime; uniform float uProgress;
+                void main() {
+                    vUv = uv; vec3 pos = position;
+                    float breathe = fbm(vec3(pos.xy * 1.5, uTime * 0.4)) * 0.06;
+                    float breatheFade = clamp(1.0 - uProgress / 0.3, 0.0, 1.0);
+                    pos.z += breathe * breatheFade;
+                    float zoom = 1.0 + uProgress * 2.0; pos.xy *= zoom;
+                    float dist = length(pos.xy);
+                    float fovStrength = uProgress * 0.6;
+                    float barrel = 1.0 + dist * dist * fovStrength; pos.xy *= barrel;
+                    float edgeNoise = fbm(vec3(pos.xy * 0.8, uTime * 0.25 + uProgress * 2.0));
+                    float edgePower = uProgress * uProgress;
+                    pos.x += edgeNoise * edgePower * 0.4;
+                    pos.y += edgeNoise * edgePower * 0.25;
+                    vEdgeDistort = edgeNoise * edgePower;
+                    pos.y += uProgress * 4.0;
+                    vY = pos.y;
+                    gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+                }
+            `,
+            fragmentShader: `
+                varying vec2 vUv; varying float vY; varying float vEdgeDistort;
+                uniform float uProgress; uniform vec3 uTextColor; uniform sampler2D uTextTex;
+                void main() {
+                    float textAlpha = texture2D(uTextTex, vUv).a;
+                    float topFade = 1.0 - smoothstep(-0.5, 2.5, vY) * uProgress;
+                    float globalFade = 1.0 - pow(uProgress, 2.2);
+                    float finalAlpha = textAlpha * topFade * globalFade;
+                    vec3 color = mix(uTextColor, vec3(0.0), uProgress);
+                    gl_FragColor = vec4(color, clamp(finalAlpha, 0.0, 1.0));
+                }
+            `,
+            transparent: true, depthWrite: false, side: THREE.DoubleSide,
+        });
+
+        function createTextTexture() {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = 2048; canvas.height = 1024;
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '220px "Borel", cursive';
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.fillText('Mich', canvas.width / 2, canvas.height / 2);
+            const tex = new THREE.CanvasTexture(canvas);
+            tex.minFilter = THREE.LinearMipmapLinearFilter;
+            tex.magFilter = THREE.LinearFilter;
+            tex.generateMipmaps = true;
+            return tex;
+        }
+
+        const geometry = new THREE.PlaneGeometry(8, 4, 120, 60);
+        const textMesh = new THREE.Mesh(geometry, shaderMaterial);
+        scene.add(textMesh);
+        shaderMaterial.uniforms.uTextTex.value = createTextTexture();
+
+        gsap.to(shaderMaterial.uniforms.uProgress, {
+            value: 1,
+            scrollTrigger: { trigger: '.white-section', start: 'top bottom', end: 'top top', scrub: 1.2 }
+        });
+        gsap.to(shaderMaterial.uniforms.uTextColor.value, {
+            r: 0, g: 0, b: 0,
+            scrollTrigger: { trigger: '.white-section', start: 'top bottom', end: 'top top', scrub: 1.2 }
+        });
+
+        const desc = document.querySelector('.section-desc');
+        const title = document.querySelector('.section-title');
+        const original = desc.textContent;
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+{}:<>?';
+
+        gsap.to(desc, {
+            scrollTrigger: {
+                trigger: '.white-section', start: 'top bottom', end: 'center center', scrub: 1.2,
+                onUpdate: (self) => {
+                    const p = self.progress;
+                    const len = original.length;
+                    const revealed = Math.floor(p * len);
+                    let res = '';
+                    for (let i = 0; i < len; i++) {
+                        res += i < revealed ? original[i] : chars[Math.floor(Math.random() * chars.length)];
+                    }
+                    desc.textContent = res;
+                    if (p >= 1) desc.textContent = original;
+                }
+            },
+            opacity: 1, transform: 'translateY(0)',
+            scrollTrigger: { trigger: '.text-column', start: 'top bottom', end: 'center center', scrub: 1.2 }
+        });
+        gsap.to(title, {
+            opacity: 1, transform: 'translateY(0)',
+            scrollTrigger: { trigger: '.text-column', start: 'top bottom', end: 'center center', scrub: 1.2 }
+        });
+
+        // --- 6. 3D-буква M (Увеличенная) ---
+        const mContainer = document.getElementById('three-m-container');
+        const mScene = new THREE.Scene();
+        const mCamera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
+        mCamera.position.z = 3.5;
+
+        const mRenderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+        mRenderer.setSize(mContainer.clientWidth, mContainer.clientHeight);
+        mRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        mContainer.appendChild(mRenderer.domElement);
+
+        const mLoader = new FontLoader();
+        mLoader.load('https://cdn.jsdelivr.net/npm/three@0.158.0/examples/fonts/helvetiker_bold.typeface.json', (font) => {
+            const mGeom = new TextGeometry('M', {
+                font: font, size: 3.2, height: 0.3, curveSegments: 12,
+                bevelEnabled: true, bevelThickness: 0.02, bevelSize: 0.02, bevelSegments: 4
+            });
+            mGeom.computeBoundingBox();
+            const box = mGeom.boundingBox;
+            mGeom.translate(-(box.max.x + box.min.x)/2, -(box.max.y + box.min.y)/2, -(box.max.z + box.min.z)/2);
+
+            const mMaterial = new THREE.MeshStandardMaterial({
+                color: 0x000000, roughness: 0.2, metalness: 0.1,
+            });
+            const m = new THREE.Mesh(mGeom, mMaterial);
+            mScene.add(m);
+
+            mScene.add(new THREE.AmbientLight(0xffffff, 0.6));
+            const light = new THREE.DirectionalLight(0xffffff, 0.8);
+            light.position.set(1, 2, 1); mScene.add(light);
+            const light2 = new THREE.DirectionalLight(0xffffff, 0.3);
+            light2.position.set(-1, -1, -1); mScene.add(light2);
+
+            gsap.to(mMaterial.color, {
+                r: 0, g: 0, b: 0,
+                scrollTrigger: { trigger: '.white-section', start: 'top bottom', end: 'top top', scrub: 1.2 }
+            });
+
+            function loop() {
+                requestAnimationFrame(loop);
+                m.rotation.y += 0.012;
+                m.rotation.x = Math.sin(Date.now() * 0.0005) * 0.1;
+                mRenderer.render(mScene, mCamera);
+            }
+            loop();
+        });
+
+        // --- 7. 3D-мозг (Огромный, полупрозрачный) ---
+        const brainContainer = document.getElementById('brain-container');
+        const brainScene = new THREE.Scene();
+        const brainCamera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
+        brainCamera.position.z = 4;
+
+        const brainRenderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+        brainRenderer.setSize(brainContainer.clientWidth, brainContainer.clientHeight);
+        brainRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        brainContainer.appendChild(brainRenderer.domElement);
+
+        brainScene.add(new THREE.AmbientLight(0xffffff, 0.6));
+        const brainLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        brainLight.position.set(1, 2, 1); brainScene.add(brainLight);
+        const brainLight2 = new THREE.DirectionalLight(0xffffff, 0.3);
+        brainLight2.position.set(-1, -1, -1); brainScene.add(brainLight2);
+
+        const gltfLoader = new GLTFLoader();
+        let brainModel;
+        let brainRotation = 0;
+
+        gltfLoader.load('https://raw.githubusercontent.com/lezginsky/3D-Models/main/brain_areas.glb', (gltf) => {
+            brainModel = gltf.scene;
+            brainModel.scale.set(1.5, 1.5, 1.5);
+            brainScene.add(brainModel);
+
+            function brainLoop() {
+                requestAnimationFrame(brainLoop);
+                if (brainModel) {
+                    brainModel.rotation.y = brainRotation;
+                    brainModel.rotation.x = Math.sin(Date.now() * 0.0005) * 0.05;
+                }
+                brainRenderer.render(brainScene, brainCamera);
+            }
+            brainLoop();
+        });
+
+        ScrollTrigger.create({
+            trigger: '.third-section',
+            start: 'top bottom',
+            end: 'bottom top',
+            onUpdate: (self) => {
+                brainRotation += self.direction * 0.02;
+            }
+        });
+
+        // --- Основной цикл ---
+        const clock = new THREE.Clock();
+        function animate() {
+            shaderMaterial.uniforms.uTime.value = clock.getElapsedTime();
+            renderer.render(scene, camera);
+            requestAnimationFrame(animate);
+        }
+        animate();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            
+            const mRect = mContainer.getBoundingClientRect();
+            if (mRect.width > 0 && mRect.height > 0) {
+                mCamera.aspect = mRect.width / mRect.height;
+                mCamera.updateProjectionMatrix();
+                mRenderer.setSize(mRect.width, mRect.height);
+            }
+
+            const bRect = brainContainer.getBoundingClientRect();
+            if (bRect.width > 0 && bRect.height > 0) {
+                brainCamera.aspect = bRect.width / bRect.height;
+                brainCamera.updateProjectionMatrix();
+                brainRenderer.setSize(bRect.width, bRect.height);
+            }
+        });
+    </script>
+</body>
+</html>
