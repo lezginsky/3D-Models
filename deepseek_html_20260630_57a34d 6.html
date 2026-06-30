@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mich — Portfolio</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Borel&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600&display=swap" rel="stylesheet">
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background-color: #000000;
+            transition: background-color 0.15s ease-out;
+            overflow-x: hidden;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            width: 100%;
+            height: 100%;
+        }
+
+        #webgl-container {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            z-index: 10;
+            pointer-events: none;
+        }
+        #webgl-container canvas { display: block; width: 100%; height: 100%; }
+
+        .scroll-wrapper { 
+            position: relative; 
+            z-index: 1; 
+            width: 100%;
+        }
+        .section { width: 100%; }
+        .black-section { height: 100vh; }
+        .white-section { height: 100vh; background: transparent; }
+        .third-section { 
+            height: 100vh; 
+            background: transparent;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* --- Бинарный фон --- */
+        .binary-background {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 0;
+            overflow: hidden;
+            pointer-events: none;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 16px;
+            line-height: 1.6;
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            letter-spacing: 3px;
+            transition: color 0.2s ease;
+        }
+
+        .binary-row {
+            display: block;
+            white-space: nowrap;
+            opacity: 0.15;
+            width: 100%;
+            animation: binaryScroll 40s linear infinite;
+        }
+
+        @keyframes binaryScroll {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-100%); }
+        }
+
+        .scroll-hint {
+            position: fixed; bottom: 40px; left: 50%;
+            transform: translateX(-50%); z-index: 20;
+            color: #ffffff;
+            font-size: 13px; letter-spacing: 2.5px;
+            text-transform: uppercase;
+            opacity: 0.5;
+            animation: bounce 2s infinite;
+            pointer-events: none;
+            transition: opacity 0.4s;
+            font-family: 'Inter', sans-serif;
+        }
+        @keyframes bounce {
+            0%, 100% { transform: translateX(-50%) translateY(0); }
+            50%      { transform: translateX(-50%) translateY(12px); }
+        }
+
+        /* --- Вторая страница (Белая) --- */
+        .white-section-content {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 3;
+        }
+
+        .white-content-container {
+            position: relative;
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 5vh 5vw;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        .text-column {
+            max-width: 700px;
+            width: 100%;
+            position: relative;
+            z-index: 2;
+        }
+
+        .text-column h2 {
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            font-size: clamp(2.8rem, 6vw, 5.5rem);
+            color: #000;
+            margin-bottom: 2rem;
+            line-height: 1.1;
+            letter-spacing: -0.03em;
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        .text-column p {
+            font-family: 'Inter', sans-serif;
+            font-weight: 400;
+            font-size: clamp(1.1rem, 1.4vw, 1.5rem);
+            line-height: 1.8;
+            color: #222;
+            max-width: 650px;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        #three-m-container {
+            position: absolute;
+            top: 50%;
+            right: 5vw;
+            transform: translateY(-50%);
+            width: 320px;
+            height: 320px;
+            z-index: 3;
+            pointer-events: none;
+        }
+
+        /* --- Третья страница (Черная) --- */
+        .third-section-content {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 6; 
+        }
+
+        .third-content-container {
+            position: relative;
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 5vh 5vw;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        .third-text-column {
+            max-width: 700px;
+            width: 100%;
+            position: relative;
+            z-index: 7;
+            opacity: 0;
+        }
+
+        .third-text-column h2 {
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            font-size: clamp(2.5rem, 4vw, 4rem);
+            color: #ffffff;
+            margin-bottom: 1.5rem;
+            line-height: 1.1;
+            letter-spacing: -0.02em;
+        }
+
+        .third-text-column p {
+            font-family: 'Inter', sans-serif;
+            font-weight: 400;
+            font-size: clamp(1rem, 1.2vw, 1.3rem);
+            line-height: 1.7;
+            color: #dddddd;
+            max-width: 650px;
+            margin-bottom: 1.5rem;
+        }
+
+        .third-text-column ul {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 2rem 0;
+        }
+
+        .third-text-column ul li {
+            font-family: 'Inter', sans-serif;
+            font-weight: 400;
+            font-size: clamp(1rem, 1.2vw, 1.3rem);
+            line-height: 1.7;
+            color: #dddddd;
+            margin-bottom: 0.8rem;
+            padding-left: 1.5rem;
+            position: relative;
+        }
+
+        .third-text-column ul li::before {
+            content: "—";
+            position: absolute;
+            left: 0;
+            color: #ffffff;
+            font-weight: 600;
+        }
+
+        .third-text-column ul li strong {
+            color: #ffffff;
+            font-weight: 600;
+        }
+
+        .third-text-column .final-text {
+            margin-top: 1rem;
+        }
+
+        #brain-container {
+            position: absolute;
+            top: 50%;
+            right: 3vw;
+            transform: translateY(-50%);
+            width: 550px;
+            height: 550px;
+            z-index: 7;
+            pointer-events: none;
+            opacity: 0;
+        }
+
+        /* --- Адаптация --- */
+        @media (max-width: 1024px) {
+            #three-m-container { width: 200px; height: 200px; right: 3vw; }
+            #brain-container { width: 380px; height: 380px; right: 2vw; }
+        }
+
+        @media (max-width: 768px) {
+            .white-content-container { padding: 5vh 4vw; justify-content: flex-start; padding-top: 15vh; }
+            .text-column { max-width: 100%; padding-bottom: 20px; }
+            .text-column h2 { font-size: 2.8rem; margin-bottom: 1.5rem; }
+            .text-column p { font-size: 1.1rem; max-width: 100%; }
+            #three-m-container { position: absolute; top: 2vh; right: 2vw; transform: none; width: 120px; height: 120px; }
+            
+            .third-content-container { padding: 10vh 4vw; justify-content: flex-start; padding-top: 20vh; }
+            .third-text-column { max-width: 100%; }
+            .third-text-column h2 { font-size: 2.2rem; }
+            .third-text-column p { font-size: 1rem; }
+            .third-text-column ul li { font-size: 1rem; }
+            #brain-container { position: absolute; top: 5vh; right: 2vw; transform: none; width: 160px; height: 160px; }
+        }
+
+        @media (max-width: 480px) {
+            #three-m-container { width: 90px; height: 90px; top: 1vh; right: 2vw; }
+            .text-column h2 { font-size: 2.2rem; }
+            .text-column p { font-size: 0.95rem; }
+            #brain-container { width: 120px; height: 120px; top: 3vh; right: 2vw; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="binary-background" id="binaryBg"></div>
+
+    <div id="webgl-container"></div>
+
+    <div class="scroll-wrapper">
+        <div class="section black-section"></div>
+        
+        <div class="section white-section">
+            <div class="white-section-content">
+                <div class="white-content-container">
+                    <div class="text-column">
+                        <h2 class="section-title">Что такое Mich?</h2>
+                        <p class="section-desc">
+                            Mich — это независимая международная технологическая экосистема нового поколения, созданная для полного переосмысления устоявшихся стандартов в индустрии потребительской электроники и программного обеспечения. Мы не адаптируемся под существующий рынок — мы проектируем цифровую реальность с чистого листа.
+                        </p>
+                    </div>
+                    <div id="three-m-container"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section third-section">
+            <div class="third-section-content">
+                <div class="third-content-container">
+                    <div class="third-text-column">
+                        <h2 class="third-title">ИИ нового поколения</h2>
+                        <p class="third-desc-1">
+                            Мы создаем ИИ нового поколения. Наша технология кардинально меняет представление о машинном обучении. В основе разработок лежит уникальная архитектура, работающая на базе спайковых (импульсных) нейронных сетей. Обычные нейросети тратят гигантские объемы энергии на постоянные вычисления. Наш ИИ имитирует работу реального человеческого мозга. Он передает информацию редкими, точными электрическими импульсами — спайками.
+                        </p>
+                        
+                        <h2 class="third-title-2">Что это дает?</h2>
+                        <ul class="third-list">
+                            <li><strong>Энергоэффективность:</strong> Потребление энергии снижается в тысячи раз.</li>
+                            <li><strong>Автономность:</strong> ИИ может эффективно работать на компактных устройствах без связи с облаком.</li>
+                            <li><strong>Скорость:</strong> Мгновенная обработка данных в реальном времени.</li>
+                            <li><strong>Обучение на лету:</strong> Наш ИИ адаптируется к новым задачам прямо в процессе работы.</li>
+                        </ul>
+                        
+                        <p class="final-text">
+                            Мы в компании Mich верим, что спайковые технологии — это ключ к созданию истинного, экологичного и безопасного искусственного интеллекта. Читайте наши исследования, следите за релизами и меняйте мир вместе с нами!
+                        </p>
+                    </div>
+                    
+                    <div id="brain-container"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="scroll-hint">↓ Скролль</div>
+
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.module.js",
+                "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.158.0/examples/jsm/"
+            }
+        }
+    </script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { FontLoader } from 'three/addons/loaders/FontLoader.js';
+        import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
+        import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+        // --- 1. Бинарный фон ---
+        const binaryBg = document.getElementById('binaryBg');
+        let html = '';
+        for (let i = 0; i < 100; i++) {
+            let row = '';
+            for (let j = 0; j < 300; j++) {
+                row += Math.random() > 0.5 ? '1' : '0';
+            }
+            html += `<span class="binary-row">${row}</span>`;
+        }
+        binaryBg.innerHTML = html;
+
+        // --- 2. GSAP ---
+        gsap.registerPlugin(ScrollTrigger);
+
+        // 1. Вторая страница (белая): становится белой сразу при входе
+        gsap.to(document.body, {
+            backgroundColor: '#ffffff',
+            scrollTrigger: {
+                trigger: '.white-section',
+                start: 'top bottom',
+                end: 'top top',
+                scrub: 1.2,
+            }
+        });
+
+        // Бинарный фон становится черным на второй странице
+        gsap.to('#binaryBg', {
+            color: '#000000',
+            scrollTrigger: {
+                trigger: '.white-section',
+                start: 'top bottom',
+                end: 'top top',
+                scrub: 1.2,
+            }
+        });
+
+        // 2. Третья страница (черная): начинает темнеть чуть позже, чем в прошлый раз
+        gsap.to(document.body, {
+            backgroundColor: '#000000',
+            scrollTrigger: {
+                trigger: '.third-section',
+                start: 'top bottom-=30%', // Было -50%, стало -30% (позже)
+                end: 'top top',
+                scrub: 1.2,
+            }
+        });
+
+        // Бинарный фон становится белым на третьей странице
+        gsap.to('#binaryBg', {
+            color: '#ffffff',
+            scrollTrigger: {
+                trigger: '.third-section',
+                start: 'top bottom-=30%',
+                end: 'top top',
+                scrub: 1.2,
+            }
+        });
+
+        // Подсказка
+        gsap.to('.scroll-hint', {
+            opacity: 0,
+            scrollTrigger: {
+                trigger: '.white-section',
+                start: 'top bottom+=100',
+                end: 'top bottom+=200',
+                scrub: 0.5,
+            },
+        });
+
+        // 3. Контент третьей страницы появляется плавно
+        gsap.to('.third-text-column', {
+            opacity: 1,
+            scrollTrigger: {
+                trigger: '.third-section',
+                start: 'top bottom+=10%',
+                end: 'top bottom+=50%',
+                scrub: 1.5,
+            }
+        });
+
+        gsap.to('#brain-container', {
+            opacity: 1,
+            scrollTrigger: {
+                trigger: '.third-section',
+                start: 'top bottom+=10%',
+                end: 'top bottom+=50%',
+                scrub: 1.5,
+            }
+        });
+
+        // --- 3. Основная сцена (текст "Mich") ---
+        const container = document.getElementById('webgl-container');
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 50);
+        camera.position.z = 5;
+
+        const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        container.appendChild(renderer.domElement);
+
+        const noiseGLSL = `
+            vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+            vec4 mod289(vec4 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+            vec4 permute(vec4 x) { return mod289(((x * 34.0) + 1.0) * x); }
+            vec4 taylorInvSqrt(vec4 r) { return 1.79284291400159 - 0.85373472095314 * r; }
+
+            float snoise(vec3 v) {
+                const vec2 C = vec2(1.0 / 6.0, 1.0 / 3.0);
+                const vec4 D = vec4(0.0, 0.5, 1.0, 2.0);
+                vec3 i  = floor(v + dot(v, C.yyy));
+                vec3 x0 = v - i + dot(i, C.xxx);
+                vec3 g  = step(x0.yzx, x0.xyz);
+                vec3 l  = 1.0 - g;
+                vec3 i1 = min(g.xyz, l.zxy);
+                vec3 i2 = max(g.xyz, l.zxy);
+                vec3 x1 = x0 - i1 + C.xxx;
+                vec3 x2 = x0 - i2 + C.yyy;
+                vec3 x3 = x0 - D.yyy;
+                i = mod289(i);
+                vec4 p = permute(permute(permute(
+                    i.z + vec4(0.0, i1.z, i2.z, 1.0))
+                    + i.y + vec4(0.0, i1.y, i2.y, 1.0))
+                    + i.x + vec4(0.0, i1.x, i2.x, 1.0));
+                float n_ = 0.142857142857;
+                vec3 ns = n_ * D.wyz - D.xzx;
+                vec4 j = p - 49.0 * floor(p * n_ * n_);
+                vec4 x_ = floor(j * n_);
+                vec4 y_ = floor(j - 7.0 * x_);
+                vec4 x = x_ * ns.x + ns.yyyy;
+                vec4 y = y_ * ns.x + ns.yyyy;
+                vec4 h = 1.0 - abs(x) - abs(y);
+                vec4 b0 = vec4(x.xy, y.xy);
+                vec4 b1 = vec4(x.zw, y.zw);
+                vec4 s0 = floor(b0) * 2.0 + 1.0;
+                vec4 s1 = floor(b1) * 2.0 + 1.0;
+                vec4 sh = -step(h, vec4(0.0));
+                vec4 a0 = b0.xzyw + s0.xzyw * sh.xxyy;
+                vec4 a1 = b1.xzyw + s1.xzyw * sh.zzww;
+                vec3 p0 = vec3(a0.xy, h.x);
+                vec3 p1 = vec3(a0.zw, h.y);
+                vec3 p2 = vec3(a1.xy, h.z);
+                vec3 p3 = vec3(a1.zw, h.w);
+                vec4 norm = taylorInvSqrt(vec4(dot(p0,p0), dot(p1,p1), dot(p2,p2), dot(p3,p3)));
+                p0 *= norm.x; p1 *= norm.y; p2 *= norm.z; p3 *= norm.w;
+                vec4 m = max(0.6 - vec4(dot(x0,x0), dot(x1,x1), dot(x2,x2), dot(x3,x3)), 0.0);
+                m = m * m;
+                return 42.0 * dot(m*m, vec4(dot(p0,x0), dot(p1,x1), dot(p2,x2), dot(p3,x3)));
+            }
+
+            float fbm(vec3 p) {
+                float v = 0.0, a = 0.5, f = 1.0;
+                for (int i = 0; i < 4; i++) { v += a * snoise(p * f); f *= 2.2; a *= 0.5; }
+                return v;
+            }
+        `;
+
+        const shaderMaterial = new THREE.ShaderMaterial({
+            uniforms: {
+                uTime: { value: 0 },
+                uProgress: { value: 0 },
+                uTextColor: { value: new THREE.Color('#ffffff') },
+                uTextTex: { value: null },
+            },
+            vertexShader: noiseGLSL + `
+                varying vec2 vUv; varying float vY; varying float vEdgeDistort;
+                uniform float uTime; uniform float uProgress;
+                void main() {
+                    vUv = uv; vec3 pos = position;
+                    float breathe = fbm(vec3(pos.xy * 1.5, uTime * 0.4)) * 0.06;
+                    float breatheFade = clamp(1.0 - uProgress / 0.3, 0.0, 1.0);
+                    pos.z += breathe * breatheFade;
+                    float zoom = 1.0 + uProgress * 2.0; pos.xy *= zoom;
+                    float dist = length(pos.xy);
+                    float fovStrength = uProgress * 0.6;
+                    float barrel = 1.0 + dist * dist * fovStrength; pos.xy *= barrel;
+                    float edgeNoise = fbm(vec3(pos.xy * 0.8, uTime * 0.25 + uProgress * 2.0));
+                    float edgePower = uProgress * uProgress;
+                    pos.x += edgeNoise * edgePower * 0.4;
+                    pos.y += edgeNoise * edgePower * 0.25;
+                    vEdgeDistort = edgeNoise * edgePower;
+                    pos.y += uProgress * 4.0;
+                    vY = pos.y;
+                    gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+                }
+            `,
+            fragmentShader: `
+                varying vec2 vUv; varying float vY; varying float vEdgeDistort;
+                uniform float uProgress; uniform vec3 uTextColor; uniform sampler2D uTextTex;
+                void main() {
+                    float textAlpha = texture2D(uTextTex, vUv).a;
+                    float topFade = 1.0 - smoothstep(-0.5, 2.5, vY) * uProgress;
+                    float globalFade = 1.0 - pow(uProgress, 2.2);
+                    float finalAlpha = textAlpha * topFade * globalFade;
+                    vec3 color = mix(uTextColor, vec3(0.0), uProgress);
+                    gl_FragColor = vec4(color, clamp(finalAlpha, 0.0, 1.0));
+                }
+            `,
+            transparent: true, depthWrite: false, side: THREE.DoubleSide,
+        });
+
+        function createTextTexture() {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = 2048; canvas.height = 1024;
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '220px "Borel", cursive';
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.fillText('Mich', canvas.width / 2, canvas.height / 2);
+            const tex = new THREE.CanvasTexture(canvas);
+            tex.minFilter = THREE.LinearMipmapLinearFilter;
+            tex.magFilter = THREE.LinearFilter;
+            tex.generateMipmaps = true;
+            return tex;
+        }
+
+        const geometry = new THREE.PlaneGeometry(8, 4, 120, 60);
+        const textMesh = new THREE.Mesh(geometry, shaderMaterial);
+        scene.add(textMesh);
+        
+        shaderMaterial.uniforms.uTextTex.value = createTextTexture();
+
+        gsap.to(shaderMaterial.uniforms.uProgress, {
+            value: 1,
+            scrollTrigger: { trigger: '.white-section', start: 'top bottom', end: 'top top', scrub: 1.2 }
+        });
+        gsap.to(shaderMaterial.uniforms.uTextColor.value, {
+            r: 0, g: 0, b: 0,
+            scrollTrigger: { trigger: '.white-section', start: 'top bottom', end: 'top top', scrub: 1.2 }
+        });
+
+        // Эффект шифра на тексте второй страницы
+        const desc = document.querySelector('.section-desc');
+        const title = document.querySelector('.section-title');
+        const original = desc.textContent;
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+{}:<>?';
+
+        gsap.to(desc, {
+            scrollTrigger: {
+                trigger: '.white-section', start: 'top bottom', end: 'center center', scrub: 1.2,
+                onUpdate: (self) => {
+                    const p = self.progress;
+                    const len = original.length;
+                    const revealed = Math.floor(p * len);
+                    let res = '';
+                    for (let i = 0; i < len; i++) {
+                        res += i < revealed ? original[i] : chars[Math.floor(Math.random() * chars.length)];
+                    }
+                    desc.textContent = res;
+                    if (p >= 1) desc.textContent = original;
+                }
+            },
+            opacity: 1, transform: 'translateY(0)',
+            scrollTrigger: { trigger: '.text-column', start: 'top bottom', end: 'center center', scrub: 1.2 }
+        });
+        gsap.to(title, {
+            opacity: 1, transform: 'translateY(0)',
+            scrollTrigger: { trigger: '.text-column', start: 'top bottom', end: 'center center', scrub: 1.2 }
+        });
+
+        // --- 4. 3D-буква M ---
+        const mContainer = document.getElementById('three-m-container');
+        const mScene = new THREE.Scene();
+        const mCamera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
+        mCamera.position.z = 3.5;
+
+        const mRenderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+        mRenderer.setSize(mContainer.clientWidth, mContainer.clientHeight);
+        mRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        mContainer.appendChild(mRenderer.domElement);
+
+        const mLoader = new FontLoader();
+        mLoader.load('https://cdn.jsdelivr.net/npm/three@0.158.0/examples/fonts/helvetiker_bold.typeface.json', (font) => {
+            const mGeom = new TextGeometry('M', {
+                font: font, size: 2.2, height: 0.2, curveSegments: 12,
+                bevelEnabled: true, bevelThickness: 0.02, bevelSize: 0.02, bevelSegments: 4
+            });
+            mGeom.computeBoundingBox();
+            const box = mGeom.boundingBox;
+            mGeom.translate(-(box.max.x + box.min.x)/2, -(box.max.y + box.min.y)/2, -(box.max.z + box.min.z)/2);
+
+            const mMaterial = new THREE.MeshStandardMaterial({
+                color: 0x000000, roughness: 0.2, metalness: 0.1,
+            });
+            const m = new THREE.Mesh(mGeom, mMaterial);
+            mScene.add(m);
+
+            mScene.add(new THREE.AmbientLight(0xffffff, 0.6));
+            const light = new THREE.DirectionalLight(0xffffff, 0.8);
+            light.position.set(1, 2, 1); mScene.add(light);
+            const light2 = new THREE.DirectionalLight(0xffffff, 0.3);
+            light2.position.set(-1, -1, -1); mScene.add(light2);
+
+            gsap.to(mMaterial.color, {
+                r: 0, g: 0, b: 0,
+                scrollTrigger: { trigger: '.white-section', start: 'top bottom', end: 'top top', scrub: 1.2 }
+            });
+
+            function loop() {
+                requestAnimationFrame(loop);
+                m.rotation.y += 0.012;
+                m.rotation.x = Math.sin(Date.now() * 0.0005) * 0.1;
+                mRenderer.render(mScene, mCamera);
+            }
+            loop();
+        });
+
+        // --- 5. 3D-мозг ---
+        const brainContainer = document.getElementById('brain-container');
+        const brainScene = new THREE.Scene();
+        const brainCamera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
+        brainCamera.position.z = 4.5;
+
+        const brainRenderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+        brainRenderer.setSize(brainContainer.clientWidth, brainContainer.clientHeight);
+        brainRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        brainContainer.appendChild(brainRenderer.domElement);
+
+        brainScene.add(new THREE.AmbientLight(0xffffff, 0.6));
+        const brainLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        brainLight.position.set(1, 2, 1); brainScene.add(brainLight);
+        const brainLight2 = new THREE.DirectionalLight(0xffffff, 0.3);
+        brainLight2.position.set(-1, -1, -1); brainScene.add(brainLight2);
+
+        const gltfLoader = new GLTFLoader();
+        let brainModel;
+        let brainRotation = 0;
+
+        gltfLoader.load('https://raw.githubusercontent.com/lezginsky/3D-Models/main/brain_areas.glb', (gltf) => {
+            brainModel = gltf.scene;
+            brainModel.scale.set(1.2, 1.2, 1.2);
+            brainScene.add(brainModel);
+
+            function brainLoop() {
+                requestAnimationFrame(brainLoop);
+                if (brainModel) {
+                    brainModel.rotation.y = brainRotation;
+                    brainModel.rotation.x = Math.sin(Date.now() * 0.0005) * 0.05;
+                }
+                brainRenderer.render(brainScene, brainCamera);
+            }
+            brainLoop();
+        });
+
+        ScrollTrigger.create({
+            trigger: '.third-section',
+            start: 'top bottom',
+            end: 'bottom top',
+            onUpdate: (self) => {
+                brainRotation += self.direction * 0.02;
+            }
+        });
+
+        // --- Основной цикл ---
+        const clock = new THREE.Clock();
+        function animate() {
+            shaderMaterial.uniforms.uTime.value = clock.getElapsedTime();
+            renderer.render(scene, camera);
+            requestAnimationFrame(animate);
+        }
+        animate();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            
+            const mRect = mContainer.getBoundingClientRect();
+            if (mRect.width > 0 && mRect.height > 0) {
+                mCamera.aspect = mRect.width / mRect.height;
+                mCamera.updateProjectionMatrix();
+                mRenderer.setSize(mRect.width, mRect.height);
+            }
+
+            const bRect = brainContainer.getBoundingClientRect();
+            if (bRect.width > 0 && bRect.height > 0) {
+                brainCamera.aspect = bRect.width / bRect.height;
+                brainCamera.updateProjectionMatrix();
+                brainRenderer.setSize(bRect.width, bRect.height);
+            }
+        });
+    </script>
+</body>
+</html>
